@@ -1,0 +1,6 @@
+把網站要用的 PDF 檔放在這個 files 資料夾裡。
+建議檔名用英文或數字，不要有空格，例如：report-01.pdf
+在 index.html 裡的寫法：
+<div class="embed pdf"><iframe src="files/report-01.pdf" title="PDF"></iframe></div>
+<a class="btn" href="files/report-01.pdf" target="_blank">開啟 PDF ↗</a>
+（這個說明檔可以留著，也可以刪掉，不影響網站。）

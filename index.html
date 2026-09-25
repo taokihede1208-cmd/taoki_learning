@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ============================================================
+     網站標題（瀏覽器分頁上顯示的文字）
+     ============================================================ -->
+<title>陶以恩的學習歷程檔案</title>
+<meta name="description" content="陶以恩的學習歷程檔案">
+
+<!-- 免費 Google Fonts：
+     JetBrains Mono = 標題用的等寬字體（程式碼風格）
+     Noto Sans TC   = 內文用的黑體（思源黑體） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   1. 顏色與基本設定（想換顏色，只要改這裡）
+   ============================================================ */
+:root{
+  --bg:#f5f6f8;                       /* 網頁底色（淡白灰） */
+  --text:#1c1f24;                     /* 主要文字顏色 */
+  --text-soft:#5d6470;                /* 次要文字顏色 */
+  --line:rgba(20,24,31,.10);          /* 細線顏色 */
+  --glass:rgba(255,255,255,.58);      /* 毛玻璃卡片底色（半透明白） */
+  --glass-strong:rgba(255,255,255,.78);
+  --glass-border:rgba(255,255,255,.9);
+  --accent:#3a7bfd;                   /* 強調色（發光、進度條） */
+  --accent-soft:rgba(58,123,253,.18);
+  --shadow:0 8px 30px rgba(20,24,31,.06);
+  --shadow-hover:0 18px 44px rgba(20,24,31,.10),0 0 0 1px rgba(58,123,253,.25),0 0 28px rgba(58,123,253,.22);
+  --radius:18px;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --sans:'Noto Sans TC','Microsoft JhengHei',system-ui,sans-serif;
+  --nav-h:64px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);color:var(--text);background:var(--bg);
+  line-height:1.8;min-height:100vh;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+body.locked{overflow:hidden}
+
+/* 背景：淡淡的格線＋柔和光暈，讓毛玻璃效果看得出來 */
+.bg-layer{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(20,24,31,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(20,24,31,.035) 1px,transparent 1px);
+  background-size:40px 40px;}
+.bg-blob{position:fixed;z-index:-1;border-radius:50%;filter:blur(70px);pointer-events:none;opacity:.55}
+.bg-blob.b1{width:46vw;height:46vw;left:-12vw;top:-10vw;background:#dfe5ef}
+.bg-blob.b2{width:40vw;height:40vw;right:-10vw;top:30vh;background:#e7e9ee}
+.bg-blob.b3{width:34vw;height:34vw;left:30vw;bottom:-14vw;background:#dde6f7}
+
+/* 毛玻璃效果（半透明＋霧面模糊） */
+.glass{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
+  backdrop-filter:blur(16px) saturate(140%);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--shadow);
+  border-radius:var(--radius);
+}
+
+/* 滑鼠移上去：發光＋浮起 */
+.hover-lift{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s}
+@media (hover:hover){
+  .hover-lift:hover{transform:translateY(-6px);box-shadow:var(--shadow-hover)}
+}
+
+/* ============================================================
+   2. 開場動畫（電腦開機畫面）
+   ============================================================ */
+#boot{
+  position:fixed;inset:0;z-index:9999;background:#fbfbfc;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  transition:opacity .7s ease,visibility .7s;
+}
+#boot.done{opacity:0;visibility:hidden}
+.boot-box{width:min(620px,100%);font-family:var(--mono);font-size:clamp(13px,2.6vw,15px);color:#2a2f37}
+.boot-head{display:flex;gap:7px;margin-bottom:22px}
+.boot-head span{width:11px;height:11px;border-radius:50%;background:#d9dce2}
+.boot-line{white-space:pre-wrap;min-height:1.9em}
+.boot-line .ok{color:var(--accent);font-weight:700}
+.boot-bar{margin-top:18px;height:3px;background:#e7e9ee;border-radius:3px;overflow:hidden}
+.boot-bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s ease}
+.boot-skip{margin-top:26px;font-size:12px;color:#9aa0aa}
+.caret{display:inline-block;width:.6em;height:1.1em;background:currentColor;vertical-align:-.18em;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ============================================================
+   3. 頂部閱讀進度條
+   ============================================================ */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:1001;
+  background:linear-gradient(90deg,var(--accent),#7fb0ff);
+  box-shadow:0 0 10px var(--accent);}
+
+/* ============================================================
+   4. 導覽列（固定在上方）
+   ============================================================ */
+.nav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,4vw,40px);
+  background:rgba(255,255,255,.62);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
+  border-bottom:1px solid var(--line);
+}
+.logo{font-family:var(--mono);font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap;letter-spacing:.02em}
+.logo b{color:var(--accent);font-weight:700}
+.nav-links{display:flex;gap:6px;list-style:none}
+.nav-links a{
+  display:block;font-size:14.5px;text-decoration:none;padding:8px 14px;border-radius:10px;
+  color:var(--text-soft);transition:background .25s,color .25s,box-shadow .25s,transform .25s;white-space:nowrap
+}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.9);box-shadow:0 0 0 1px var(--accent-soft),0 0 18px var(--accent-soft);transform:translateY(-2px)}
+.nav-links a.active{color:var(--text);background:#fff;box-shadow:0 0 0 1px var(--line)}
+.nav-links a.active::before{content:"> ";font-family:var(--mono);color:var(--accent)}
+.menu-btn{display:none;width:42px;height:42px;border-radius:10px;align-items:center;justify-content:center}
+.menu-btn span,.menu-btn span::before,.menu-btn span::after{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;position:relative;transition:.3s}
+.menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0}
+.menu-btn span::before{top:-6px}.menu-btn span::after{top:6px}
+.nav.open .menu-btn span{background:transparent}
+.nav.open .menu-btn span::before{top:0;transform:rotate(45deg)}
+.nav.open .menu-btn span::after{top:0;transform:rotate(-45deg)}
+
+/* 平板與手機：導覽列變成「漢堡選單」 */
+@media (max-width:960px){
+  .menu-btn{display:flex}
+  .nav-links{
+    position:absolute;top:var(--nav-h);left:12px;right:12px;flex-direction:column;gap:4px;padding:10px;
+    background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    opacity:0;visibility:hidden;transform:translateY(-8px);transition:.3s;
+  }
+  .nav.open .nav-links{opacity:1;visibility:visible;transform:none}
+  .nav-links a{padding:12px 14px;font-size:15px}
+}
+
+/* ============================================================
+   5. 頁面與過場動畫
+   ============================================================ */
+main{padding-top:var(--nav-h);min-height:calc(100vh - 120px)}
+.page{display:none;padding:clamp(40px,8vw,90px) clamp(16px,5vw,48px) 80px;max-width:1080px;margin:0 auto}
+.page.active{display:block;animation:pageIn .6s cubic-bezier(.2,.8,.2,1) both}
+.page.leaving{display:block;animation:pageOut .32s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(24px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes pageOut{to{opacity:0;transform:translateY(-14px);filter:blur(4px)}}
+
+/* 切換頁面時，畫面中間閃過的「指令列」與掃描線 */
+#transition{position:fixed;inset:0;z-index:998;pointer-events:none;display:flex;align-items:center;justify-content:center}
+#transition .scan{position:absolute;left:0;right:0;height:2px;top:0;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 16px var(--accent);opacity:0}
+#transition .cmd{font-family:var(--mono);font-size:14px;padding:10px 18px;border-radius:12px;opacity:0;transform:scale(.96)}
+#transition.run .scan{animation:scan .7s ease forwards}
+#transition.run .cmd{animation:cmd .7s ease forwards}
+@keyframes scan{0%{top:0;opacity:1}100%{top:100%;opacity:0}}
+@keyframes cmd{0%{opacity:0;transform:scale(.96)}25%,70%{opacity:1;transform:none}100%{opacity:0}}
+
+/* 頁面標題 */
+.page-head{margin-bottom:clamp(32px,6vw,56px)}
+.prompt{font-family:var(--mono);font-size:13px;color:var(--text-soft);margin-bottom:10px}
+.prompt b{color:var(--accent);font-weight:500}
+.page-title{
+  font-family:var(--mono);font-weight:700;letter-spacing:-.01em;line-height:1.3;
+  font-size:clamp(26px,5vw,44px);word-break:break-word;
+}
+.page-title::after{content:"";display:block;width:56px;height:3px;margin-top:18px;border-radius:3px;background:var(--accent);box-shadow:0 0 12px var(--accent-soft)}
+
+/* 主頁大標題 */
+.hero{min-height:calc(62vh - var(--nav-h));display:flex;flex-direction:column;justify-content:center;margin-bottom:40px}
+.hero .page-title{font-size:clamp(32px,7vw,68px)}
+
+/* ============================================================
+   6. 空白欄位（之後放內容的地方）
+   ============================================================ */
+.panel{padding:clamp(20px,4vw,34px);margin-bottom:24px}
+.panel-label{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text-soft);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.panel-label::before{content:"//";color:var(--accent)}
+.slot{min-height:2em}
+.slot p{margin-bottom:1em}
+.slot p:last-child{margin-bottom:0}
+/* 欄位還是空的時候，只顯示一個閃爍游標；放入內容後自動消失 */
+.slot.is-empty::before{content:"";display:inline-block;width:.55em;height:1.1em;background:#c3c8d0;vertical-align:middle;animation:blink 1s steps(1) infinite}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:760px){.grid-2{grid-template-columns:1fr}}
+
+/* ============================================================
+   7. 視窗外框（仿終端機視窗）
+   ============================================================ */
+.window{overflow:hidden}
+.window-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.5)}
+.window-bar i{width:10px;height:10px;border-radius:50%;background:#d9dce2}
+.window-bar span{font-family:var(--mono);font-size:12px;color:var(--text-soft);margin-left:8px}
+.window-body{padding:clamp(22px,4vw,40px) clamp(16px,4vw,40px)}
+
+/* ============================================================
+   8. 時間線
+   ============================================================ */
+.timeline{position:relative;padding-left:34px}
+/* 時間線的直線（捲到時會由上往下畫出來） */
+.timeline::before{
+  content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(var(--accent),rgba(58,123,253,.15));
+  transform:scaleY(0);transform-origin:top;transition:transform 1.4s cubic-bezier(.2,.8,.2,1);
+}
+.timeline.in::before{transform:scaleY(1)}
+/* 起點、終點的小圓點 */
+.tl-cap{position:absolute;left:4px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.tl-cap.top{top:0}.tl-cap.bottom{bottom:0;border-color:#b9c7e6;box-shadow:none}
+.timeline.is-empty{min-height:340px}
+
+.tl-item{position:relative;margin-bottom:28px}
+.tl-item:last-of-type{margin-bottom:0}
+.tl-dot{position:absolute;left:-31px;top:22px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 0 0 5px var(--accent-soft),0 0 14px var(--accent-soft)}
+.tl-card{padding:clamp(18px,3.5vw,28px)}
+.tl-index{font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:4px}
+.tl-title{font-family:var(--mono);font-size:clamp(18px,3vw,22px);font-weight:700;margin-bottom:12px}
+.tl-content > * + *{margin-top:16px}
+
+/* ============================================================
+   9. 捲動時淡入
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   10. 備用功能：照片放大、照片輪播、嵌入 PDF / 簡報
+   ============================================================ */
+/* (a) 可點擊放大的照片 */
+img.zoomable{cursor:zoom-in;border-radius:12px;transition:transform .3s,box-shadow .3s}
+@media (hover:hover){img.zoomable:hover{transform:scale(1.015);box-shadow:var(--shadow-hover)}}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.photo-grid img{width:100%;aspect-ratio:4/3;object-fit:cover}
+
+/* 放大檢視的黑色背景視窗 */
+#lightbox{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:clamp(12px,4vw,48px);
+  background:rgba(15,17,21,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transition:.3s}
+#lightbox.open{opacity:1;visibility:visible}
+#lightbox img{max-width:100%;max-height:86vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.4);transform:scale(.94);transition:transform .35s}
+#lightbox.open img{transform:none}
+#lightbox .lb-cap{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#e8eaee;font-size:14px;padding:0 60px}
+.lb-btn{position:absolute;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.lb-btn:hover{background:rgba(255,255,255,.28)}
+.lb-close{top:16px;right:16px}.lb-prev{left:14px;top:50%;transform:translateY(-50%)}.lb-next{right:14px;top:50%;transform:translateY(-50%)}
+
+/* (b) 照片輪播 */
+.carousel{position:relative;border-radius:14px;overflow:hidden;background:#eceef2;touch-action:pan-y}
+.carousel-track{display:flex;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.carousel-track > *{flex:0 0 100%;width:100%}
+.carousel-track img{width:100%;aspect-ratio:16/10;object-fit:cover;cursor:zoom-in}
+.car-btn{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:.25s}
+.car-btn:hover{background:#fff;box-shadow:var(--shadow-hover)}
+.car-prev{left:12px}.car-next{right:12px}
+.car-dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:7px}
+.car-dots button{width:8px;height:8px;border-radius:8px;background:rgba(255,255,255,.65);transition:.3s}
+.car-dots button.on{width:22px;background:#fff}
+
+/* (c) 嵌入 PDF 或簡報 */
+.embed{position:relative;width:100%;aspect-ratio:16/10;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.embed.pdf{aspect-ratio:auto;height:min(80vh,760px)}
+.embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;text-decoration:none;padding:10px 16px;border-radius:10px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+
+/* ============================================================
+   11. 滑鼠光點軌跡、回到頂端按鈕
+   ============================================================ */
+#cursor-canvas{position:fixed;inset:0;z-index:997;pointer-events:none}
+#cursor-glow{position:fixed;left:0;top:0;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;pointer-events:none;z-index:-1;
+  background:radial-gradient(circle,rgba(58,123,253,.10),transparent 65%);opacity:0;transition:opacity .4s}
+
+#to-top{position:fixed;right:clamp(14px,3vw,28px);bottom:clamp(14px,3vw,28px);z-index:990;width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:18px;
+  opacity:0;visibility:hidden;transform:translateY(12px)}
+#to-top.show{opacity:1;visibility:visible;transform:none}
+
+/* ============================================================
+   12. 頁尾
+   ============================================================ */
+footer{border-top:1px solid var(--line);background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  padding:28px clamp(16px,5vw,48px);text-align:center;font-size:13.5px;color:var(--text-soft)}
+footer .copy{font-family:var(--mono);color:var(--text);font-size:13.5px;margin-bottom:6px;word-break:break-word}
+footer p + p{margin-top:2px}
+
+/* 使用者設定「減少動態效果」時，關閉大部分動畫 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body class="locked">
+
+<!-- 背景裝飾（格線與光暈），不用修改 -->
+<div class="bg-layer"></div>
+<div class="bg-blob b1"></div><div class="bg-blob b2"></div><div class="bg-blob b3"></div>
+<div id="cursor-glow"></div>
+<canvas id="cursor-canvas"></canvas>
+
+<!-- ============================================================
+     開場動畫：文字內容在最下方 JavaScript 的 BOOT_LINES 修改
+     ============================================================ -->
+<div id="boot" aria-hidden="true">
+  <div class="boot-box">
+    <div class="boot-head"><span></span><span></span><span></span></div>
+    <div id="boot-lines"></div>
+    <div class="boot-bar"><i id="boot-bar"></i></div>
+    <div class="boot-skip">點一下畫面可略過</div>
+  </div>
+</div>
+
+<div id="progress"></div>
+
+<!-- ============================================================
+     導覽列
+     ============================================================ -->
+<header class="nav" id="nav">
+  <a href="#home" class="logo" data-link>taotaotaoki<b>@</b>衛道中學陶以恩</a>
+  <button class="menu-btn" id="menu-btn" aria-label="開啟選單"><span></span></button>
+  <ul class="nav-links">
+    <li><a href="#home" data-link>主頁</a></li>
+    <li><a href="#self-learning" data-link>陶以恩的自主學習履歷</a></li>
+    <li><a href="#works" data-link>陶以恩的實作作品</a></li>
+    <li><a href="#courses" data-link>陶以恩的選修課程</a></li>
+  </ul>
+</header>
+
+<div id="transition"><div class="scan"></div><div class="cmd glass" id="transition-cmd"></div></div>
+
+<main>
+
+<!-- ████████████████████████████████████████████████████████████
+     頁面 1：主頁
+     ████████████████████████████████████████████████████████████ -->
+<section class="page" id="page-home">
+  <div class="hero">
+    <div class="prompt reveal"><b>$</b> 你好</div>
+    <h1 class="page-title reveal">陶以恩的學習歷程檔案</h1>
+  </div>
+
+  <div class="grid-2">
+    <!-- 自我介紹欄位 -->
+    <div class="panel glass hover-lift reveal">
+      <div class="panel-label">簡短自我介紹</div>
+      <div class="slot">
+        <!-- ★ 這裡放入「簡短自我介紹」
+             寫法範例（寫在這整段註解的「外面」，也就是最後一行箭頭的下方）：
+             <p>第一段文字</p>
+             <p>第二段文字</p>
+             想放照片可以加：<img src="images/檔名.jpg" alt="照片說明" class="zoomable">
+        -->
+        <p>你好，我是衛道中學的陶以恩</p>
+        <p>我喜歡資訊軟體相關的事物</p>
+        <p>像是: 遊戲、軟體、網頁</p>
+        <p>同時我也喜歡拍攝影片</p>
+      </div>
+    </div>
+
+    <!-- 未來科系方向欄位 -->
+    <div class="panel glass hover-lift reveal">
+      <div class="panel-label">未來想念的科系方向</div>
+      <div class="slot">
+        <!-- ★ 這裡放入「未來想念的科系方向」
+             寫法範例：<p>文字內容</p>
+        -->
+        <p>未來，我希望可以向資訊工程的方向邁進</p>
+        <p>以後希望從事資訊相關產業</p>
+        <p>可能也會有創業的打算，以開發遊戲or軟體為主</p>
+        <p>希望可以靠自己闖出一片天</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ████████████████████████████████████████████████████████████
+     頁面 2：陶以恩的自主學習履歷
+     ████████████████████████████████████████████████████████████ -->
+<section class="page" id="page-self-learning">
+  <div class="page-head">
+    <div class="prompt reveal"><b>$</b> cd ~/self-learning</div>
+    <h1 class="page-title reveal">陶以恩的自主學習履歷</h1>
+  </div>
+
+  <div class="window glass reveal">
+    <div class="window-bar"><i></i><i></i><i></i><span>timeline.log</span></div>
+    <div class="window-body">
+      <div class="timeline reveal">
+        <span class="tl-cap top"></span>
+
+        <!-- ★ 這裡放入自主學習的時間線項目（目前完全空白）
+             想新增一個項目時，複製下面「範本」中 <article> 到 </article> 的整段，
+             貼到這個註解的下方，然後把文字換成自己的。
+
+             ─────────────── 範本開始 ───────────────
+             <article class="tl-item reveal">
+               <div class="tl-dot"></div>
+               <div class="tl-card glass hover-lift">
+                 <h3 class="tl-title">這裡放入項目標題</h3>
+                 <div class="tl-content">
+                   <p>這裡放入文字說明</p>
+
+                   （可選）單張照片，點擊可放大：
+                   <img src="images/檔名.jpg" alt="照片說明" class="zoomable">
+
+                   （可選）多張照片輪播：
+                   <div class="carousel">
+                     <div class="carousel-track">
+                       <img src="images/照片1.jpg" alt="照片說明">
+                       <img src="images/照片2.jpg" alt="照片說明">
+                     </div>
+                   </div>
+
+                   （可選）嵌入 PDF：
+                   <div class="embed pdf"><iframe src="files/檔名.pdf" title="PDF"></iframe></div>
+                   <a class="btn" href="files/檔名.pdf" target="_blank">開啟 PDF ↗</a>
+
+                   （可選）嵌入 Google 簡報：
+                   <div class="embed"><iframe src="這裡貼 Google 簡報的嵌入網址" allowfullscreen title="簡報"></iframe></div>
+                 </div>
+               </div>
+             </article>
+             ─────────────── 範本結束 ───────────────
+        -->
+              
+        <span class="tl-cap bottom"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ████████████████████████████████████████████████████████████
+     頁面 3：陶以恩的實作作品
+     ████████████████████████████████████████████████████████████ -->
+<section class="page" id="page-works">
+  <div class="page-head">
+    <div class="prompt reveal"><b>$</b> cd ~/works</div>
+    <h1 class="page-title reveal">陶以恩的實作作品</h1>
+  </div>
+
+  <!-- ★ 這裡放入實作作品內容（目前完全空白）
+       可以使用和其他頁面一樣的元件，例如：
+       <div class="panel glass hover-lift reveal">
+         <div class="panel-label">作品名稱</div>
+         <p>作品說明</p>
+         <img src="images/檔名.jpg" alt="照片說明" class="zoomable">
+       </div>
+  -->
+</section>
+
+<!-- ████████████████████████████████████████████████████████████
+     頁面 4：陶以恩的選修課程
+     ████████████████████████████████████████████████████████████ -->
+<section class="page" id="page-courses">
+  <div class="page-head">
+    <div class="prompt reveal"><b>$</b> cd ~/courses</div>
+    <h1 class="page-title reveal">陶以恩的選修課程</h1>
+  </div>
+
+  <div class="window glass reveal">
+    <div class="window-bar"><i></i><i></i><i></i><span>semesters.log</span></div>
+    <div class="window-body">
+      <div class="timeline reveal">
+        <span class="tl-cap top"></span>
+
+        <!-- ===== 學期 1：高一上 ===== -->
+        <article class="tl-item reveal">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass hover-lift">
+            <div class="tl-index">01 / 04</div>
+            <h3 class="tl-title">高一上</h3>
+            <div class="tl-content slot">
+              <!-- ★ 這裡放入「高一上」的選修課程內容
+                   文字：<p>文字內容</p>
+                   照片（點擊放大）：<img src="images/檔名.jpg" alt="說明" class="zoomable">
+                   多張照片輪播：
+                     <div class="carousel"><div class="carousel-track">
+                       <img src="images/照片1.jpg" alt="說明">
+                       <img src="images/照片2.jpg" alt="說明">
+                     </div></div>
+                   PDF：<div class="embed pdf"><iframe src="files/檔名.pdf" title="PDF"></iframe></div>
+                        <a class="btn" href="files/檔名.pdf" target="_blank">開啟 PDF ↗</a>
+                   Google 簡報：<div class="embed"><iframe src="簡報嵌入網址" allowfullscreen title="簡報"></iframe></div>
+              -->
+                   <div class="embed pdf"><iframe src="files/115-1 python 與 微控制器.pdf" title="PDF"></iframe></div>
+                   <a class="btn" href="files/115-1 python 與 微控制器.pdf" target="_blank">開啟 PDF ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- ===== 學期 2：高一下 ===== -->
+        <article class="tl-item reveal">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass hover-lift">
+            <div class="tl-index">02 / 04</div>
+            <h3 class="tl-title">高一下</h3>
+            <div class="tl-content slot">
+              <!-- ★ 這裡放入「高一下」的選修課程內容（寫法同「高一上」的註解） -->
+            </div>
+          </div>
+        </article>
+
+        <!-- ===== 學期 3：高二上 ===== -->
+        <article class="tl-item reveal">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass hover-lift">
+            <div class="tl-index">03 / 04</div>
+            <h3 class="tl-title">高二上</h3>
+            <div class="tl-content slot">
+              <!-- ★ 這裡放入「高二上」的選修課程內容（寫法同「高一上」的註解） -->
+            </div>
+          </div>
+        </article>
+
+        <!-- ===== 學期 4：高二下 ===== -->
+        <article class="tl-item reveal">
+          <div class="tl-dot"></div>
+          <div class="tl-card glass hover-lift">
+            <div class="tl-index">04 / 04</div>
+            <h3 class="tl-title">高二下</h3>
+            <div class="tl-content slot">
+              <!-- ★ 這裡放入「高二下」的選修課程內容（寫法同「高一上」的註解） -->
+            </div>
+          </div>
+        </article>
+
+        <span class="tl-cap bottom"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================================================
+     頁尾（版權資訊）
+     ============================================================ -->
+<footer>
+  <p class="copy">© <span id="year"></span> Taotaotaoki 陶吉訶德 陶以恩 版權所有</p>
+  <p>All Rights Reserved. 本網站所有文字、照片與作品檔案之著作權均屬作者所有，未經授權請勿轉載、重製或使用。</p>
+</footer>
+
+<!-- 回到頂端按鈕 -->
+<button id="to-top" class="glass hover-lift" aria-label="回到頂端">↑</button>
+
+<!-- 照片放大檢視視窗（不用修改） -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="照片放大檢視">
+  <button class="lb-btn lb-close" aria-label="關閉">✕</button>
+  <button class="lb-btn lb-prev" aria-label="上一張">‹</button>
+  <img alt="">
+  <button class="lb-btn lb-next" aria-label="下一張">›</button>
+  <div class="lb-cap"></div>
+</div>
+
+<script>
+/* ============================================================
+   JavaScript：一般不需要修改。
+   唯一可能想改的是下面「開場動畫文字」。
+   ============================================================ */
+
+/* ---------- 開場動畫文字（可自行修改每一行） ---------- */
+const BOOT_LINES = [
+  "[ OK ] 系統啟動中…",
+  "[ OK ] 載入字型與介面模組…",
+  "[ OK ] 載入檔案…",
+  "[ OK ] 掛載學習歷程資料庫…",
+  "> 歡迎進入 陶以恩的學習歷程檔案"
+];
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- 1. 開場動畫：一行一行打字 ---------- */
+(function boot(){
+  const box = document.getElementById('boot');
+  const linesEl = document.getElementById('boot-lines');
+  const bar = document.getElementById('boot-bar');
+  let finished = false, timer = null;
+
+  function finish(){
+    if (finished) return;
+    finished = true; clearTimeout(timer);
+    bar.style.width = '100%';
+    box.classList.add('done');
+    document.body.classList.remove('locked');
+    router(true);
+  }
+  box.addEventListener('click', finish);
+  document.addEventListener('keydown', e => { if (!finished && (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ')) finish(); });
+
+  if (reduceMotion){ setTimeout(finish, 0); return; }
+
+  let li = 0, ci = 0, current = null;
+  const speed = 28;
+  function type(){
+    if (finished) return;
+    if (li >= BOOT_LINES.length){ timer = setTimeout(finish, 650); return; }
+    const text = BOOT_LINES[li];
+    if (ci === 0){
+      if (current) current.querySelector('.caret')?.remove();
+      current = document.createElement('div'); current.className = 'boot-line';
+      linesEl.appendChild(current);
+    }
+    ci++;
+    const shown = text.slice(0, ci).replace(/</g,'&lt;').replace('[ OK ]','[ <span class="ok">OK</span> ]');
+    current.innerHTML = shown + '<span class="caret"></span>';
+    if (ci >= text.length){
+      li++; ci = 0;
+      bar.style.width = (li / BOOT_LINES.length * 100) + '%';
+      timer = setTimeout(type, 260);
+    } else {
+      timer = setTimeout(type, speed);
+    }
+  }
+  timer = setTimeout(type, 350);
+})();
+
+/* ---------- 2. 頁面切換（網址 #home、#courses…） ---------- */
+const PAGES = {
+  'home':          {cmd:'cd ~/'},
+  'self-learning': {cmd:'cd ~/self-learning'},
+  'works':         {cmd:'cd ~/works'},
+  'courses':       {cmd:'cd ~/courses'}
+};
+let currentPage = null;
+
+function router(first){
+  let id = location.hash.replace('#','');
+  if (!PAGES[id]) id = 'home';
+  if (id === currentPage) return;
+  const next = document.getElementById('page-' + id);
+  const prev = currentPage ? document.getElementById('page-' + currentPage) : null;
+
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  document.getElementById('nav').classList.remove('open');
+
+  const show = () => {
+    if (prev){ prev.classList.remove('active','leaving'); }
+    next.classList.add('active');
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    window.scrollTo(0,0);
+    prepareReveal(next);
+    updateProgress();
+  };
+
+  if (prev && !first && !reduceMotion){
+    const t = document.getElementById('transition');
+    document.getElementById('transition-cmd').textContent = '$ ' + PAGES[id].cmd;
+    t.classList.remove('run'); void t.offsetWidth; t.classList.add('run');
+    prev.classList.add('leaving');
+    setTimeout(show, 300);
+  } else {
+    show();
+  }
+  currentPage = id;
+}
+window.addEventListener('hashchange', () => router(false));
+document.getElementById('menu-btn').addEventListener('click', () => document.getElementById('nav').classList.toggle('open'));
+
+/* ---------- 3. 往下滑時內容淡入 ---------- */
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting){ en.target.classList.add('in'); revealObserver.unobserve(en.target); } });
+}, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+
+function prepareReveal(page){
+  page.querySelectorAll('.reveal, .timeline').forEach((el, i) => {
+    el.classList.remove('in');
+    el.style.transitionDelay = el.classList.contains('timeline') ? '' : Math.min(i * 60, 360) + 'ms';
+    revealObserver.observe(el);
+  });
+}
+
+/* ---------- 4. 自動判斷欄位是否空白、時間線是否空白 ---------- */
+function isBlank(el){ return el.children.length === 0 && el.textContent.trim() === ''; }
+document.querySelectorAll('.slot').forEach(el => el.classList.toggle('is-empty', isBlank(el)));
+document.querySelectorAll('.timeline').forEach(tl => {
+  if (!tl.querySelector('.tl-item')) tl.classList.add('is-empty');
+});
+
+/* ---------- 5. 閱讀進度條、回到頂端按鈕 ---------- */
+const progress = document.getElementById('progress');
+const toTop = document.getElementById('to-top');
+function updateProgress(){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+  progress.style.width = Math.min(100, pct) + '%';
+  toTop.classList.toggle('show', window.scrollY > 300);
+}
+window.addEventListener('scroll', updateProgress, {passive:true});
+window.addEventListener('resize', updateProgress);
+toTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+/* ---------- 6. 滑鼠光點軌跡（只在電腦上啟用） ---------- */
+(function cursorTrail(){
+  if (reduceMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const canvas = document.getElementById('cursor-canvas');
+  const ctx = canvas.getContext('2d');
+  const glow = document.getElementById('cursor-glow');
+  let w, h, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const points = [];
+  let mouse = {x:-100, y:-100}, lerp = {x:-100, y:-100}, running = false;
+
+  function resize(){
+    w = window.innerWidth; h = window.innerHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    glow.style.opacity = 1;
+    for (let i = 0; i < 2; i++){
+      points.push({x:e.clientX, y:e.clientY, vx:(Math.random()-.5)*.8, vy:(Math.random()-.5)*.8, life:1, r:Math.random()*2+1});
+    }
+    if (points.length > 90) points.splice(0, points.length - 90);
+    if (!running){ running = true; requestAnimationFrame(draw); }
+  });
+  document.addEventListener('mouseleave', () => glow.style.opacity = 0);
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    lerp.x += (mouse.x - lerp.x) * .12; lerp.y += (mouse.y - lerp.y) * .12;
+    glow.style.transform = `translate(${lerp.x}px, ${lerp.y}px)`;
+
+    // 線條：把光點依序連起來
+    ctx.lineWidth = 1;
+    for (let i = 1; i < points.length; i++){
+      const a = points[i-1], b = points[i];
+      ctx.strokeStyle = `rgba(58,123,253,${Math.min(a.life,b.life) * .35})`;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+    // 光點
+    for (let i = points.length - 1; i >= 0; i--){
+      const p = points[i];
+      p.x += p.vx; p.y += p.vy; p.life -= .022;
+      if (p.life <= 0){ points.splice(i,1); continue; }
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(58,123,253,${p.life * .7})`;
+      ctx.shadowColor = 'rgba(58,123,253,.8)'; ctx.shadowBlur = 8;
+      ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    if (points.length || Math.abs(mouse.x - lerp.x) > .5) requestAnimationFrame(draw);
+    else running = false;
+  }
+})();
+
+/* ---------- 7. 照片輪播（自動套用到所有 class="carousel"） ----------
+   想讓它自動播放：<div class="carousel" data-autoplay="4000">（單位：毫秒） */
+document.querySelectorAll('.carousel').forEach(car => {
+  const track = car.querySelector('.carousel-track');
+  if (!track) return;
+  const slides = [...track.children];
+  if (slides.length < 2) return;
+  let idx = 0;
+  const prev = Object.assign(document.createElement('button'), {className:'car-btn car-prev', innerHTML:'‹', ariaLabel:'上一張'});
+  const next = Object.assign(document.createElement('button'), {className:'car-btn car-next', innerHTML:'›', ariaLabel:'下一張'});
+  const dots = document.createElement('div'); dots.className = 'car-dots';
+  slides.forEach((_, i) => {
+    const d = document.createElement('button'); d.setAttribute('aria-label', '第 ' + (i+1) + ' 張');
+    d.addEventListener('click', () => go(i)); dots.appendChild(d);
+  });
+  car.append(prev, next, dots);
+  function go(i){
+    idx = (i + slides.length) % slides.length;
+    track.style.transform = `translateX(${-idx * 100}%)`;
+    [...dots.children].forEach((d, j) => d.classList.toggle('on', j === idx));
+  }
+  prev.addEventListener('click', () => go(idx - 1));
+  next.addEventListener('click', () => go(idx + 1));
+  // 手機左右滑動
+  let sx = null;
+  car.addEventListener('touchstart', e => sx = e.touches[0].clientX, {passive:true});
+  car.addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+    sx = null;
+  });
+  const auto = parseInt(car.dataset.autoplay);
+  if (auto > 0) setInterval(() => { if (!document.hidden) go(idx + 1); }, auto);
+  go(0);
+});
+
+/* ---------- 8. 點擊照片放大檢視 ----------
+   適用：class="zoomable" 的照片，以及輪播裡的所有照片。
+   同一張卡片／同一個輪播裡的照片，放大後可以按左右切換。 */
+(function lightbox(){
+  const lb = document.getElementById('lightbox');
+  const img = lb.querySelector('img');
+  const cap = lb.querySelector('.lb-cap');
+  let group = [], gi = 0;
+
+  function open(list, i){
+    group = list; gi = i; render();
+    lb.classList.add('open'); document.body.style.overflow = 'hidden';
+  }
+  function close(){ lb.classList.remove('open'); document.body.style.overflow = ''; }
+  function render(){
+    const el = group[gi];
+    img.src = el.currentSrc || el.src; img.alt = el.alt || '';
+    cap.textContent = el.alt || '';
+    const multi = group.length > 1;
+    lb.querySelector('.lb-prev').style.display = multi ? '' : 'none';
+    lb.querySelector('.lb-next').style.display = multi ? '' : 'none';
+  }
+  function step(n){ gi = (gi + n + group.length) % group.length; render(); }
+
+  document.addEventListener('click', e => {
+    const t = e.target;
+    if (t.tagName !== 'IMG' || !(t.classList.contains('zoomable') || t.closest('.carousel'))) return;
+    const scope = t.closest('.carousel') || t.closest('.tl-card, .panel') || document;
+    const list = [...scope.querySelectorAll('img.zoomable, .carousel img')];
+    open(list, Math.max(0, list.indexOf(t)));
+  });
+  lb.querySelector('.lb-close').addEventListener('click', close);
+  lb.querySelector('.lb-prev').addEventListener('click', e => { e.stopPropagation(); step(-1); });
+  lb.querySelector('.lb-next').addEventListener('click', e => { e.stopPropagation(); step(1); });
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('open')) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+})();
+</script>
+</body>
+</html>
